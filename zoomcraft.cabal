@@ -24,5 +24,9 @@ executable zoomcraft
                      , netwire ==5.0.*
                      , OpenGL ==2.13.*
                      , GLFW-b ==1.4.*
+                     , transformers ==0.3.*
+                     , containers ==0.5.*
+  default-extensions:  LambdaCase
+                     , RecordWildCards
   hs-source-dirs:      src
   default-language:    Haskell2010
