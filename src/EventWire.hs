@@ -10,15 +10,17 @@ import qualified Graphics.UI.GLFW as GLFW
 import Control.Wire
 
 data EventState = EventState
-  { keyPressed :: M.Map GLFW.Key Int
-  , keyReleased :: M.Map GLFW.Key Int
-  , keyPressing :: S.Set GLFW.Key
+  { keyPressed :: !(M.Map GLFW.Key Int)
+  , keyReleased :: !(M.Map GLFW.Key Int)
+  , keyPressing :: !(S.Set GLFW.Key)
+  , framebufferResize :: Maybe (Int, Int)
   }
 
 initEventState = EventState
   { keyPressed = M.empty
   , keyReleased = M.empty
   , keyPressing = S.empty
+  , framebufferResize = Nothing
   }
 
 type EventStateHandle = IORef EventState
@@ -35,10 +37,17 @@ keyCallback hd _win key _scanCode action _mods = modifyIORef' hd $ \state -> cas
     }
   _ -> state
 
+framebufferSizeCallback :: EventStateHandle -> GLFW.Window -> Int -> Int -> IO ()
+framebufferSizeCallback hd _win w h = modifyIORef' hd $ \state ->
+  state
+    { framebufferResize = Just (w, h)
+    }
+
 mkEventWire :: MonadIO m => GLFW.Window -> m (Wire s e m a EventState)
 mkEventWire win = liftIO $ do
   hd <- newIORef initEventState
   GLFW.setKeyCallback win (Just $ keyCallback hd)
+  GLFW.setFramebufferSizeCallback win (Just $ framebufferSizeCallback hd)
 
   return $ mkGen_ $ const $ liftIO $ do
     modifyIORef' hd $ \state -> state
