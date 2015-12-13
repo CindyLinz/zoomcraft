@@ -33,10 +33,12 @@ adjustFramebufferSizeWire = mkGen_ $ \evts -> do
 mkRenderWire :: (Monoid s, MonadIO m) => IO (Wire s e m a ())
 mkRenderWire = do
   rectVBuf <- genObjectName
-  -- 0 3
-  -- 1 2
+  -- 0 1
+  -- 3 2
   rectVertices <- newArray_ (0,3) :: IO (StorableArray Int (Vertex2 Float))
   let rectVerticesSize = toEnum $ 4 * sizeOf (undefined :: Vertex2 Float)
+
+  cullFace $= Just Back
 
   (plainShader, posLoc, colorLoc) <- mkPlainShader
 
@@ -50,9 +52,9 @@ mkRenderWire = do
       uniform colorLoc $= (fmap realToFrac color :: Color3 GLfloat)
 
       writeArray rectVertices 0 (Vertex2 x1 y1)
-      writeArray rectVertices 1 (Vertex2 x1 y2)
+      writeArray rectVertices 1 (Vertex2 x2 y1)
       writeArray rectVertices 2 (Vertex2 x2 y2)
-      writeArray rectVertices 3 (Vertex2 x2 y1)
+      writeArray rectVertices 3 (Vertex2 x1 y2)
 
       currentProgram $= Just plainShader
 
