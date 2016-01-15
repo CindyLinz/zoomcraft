@@ -3,25 +3,10 @@ module Shader where
 import Data.String
 import Control.Monad
 import qualified Data.ByteString as BS
-import System.IO
-import Language.Haskell.TH.Syntax
-import Language.Haskell.TH.Lib
 
 import Graphics.Rendering.OpenGL.GL
 
-plainVertexShaderCode :: IsString a => a
-plainVertexShaderCode = fromString $
-  $( do
-      code <- runIO $ readFile "src/shader/plain_vertex.glsl"
-      stringE code
-  )
-
-plainFragmentShaderCode :: IsString a => a
-plainFragmentShaderCode = fromString $
-  $( do
-      code <- runIO $ readFile "src/shader/plain_fragment.glsl"
-      stringE code
-  )
+import ShaderTemplate
 
 mkShader :: ShaderType -> BS.ByteString -> IO Shader
 mkShader ty src = do
@@ -35,6 +20,10 @@ mkShader ty src = do
 
   return shdr
 
+plainVertexShaderCode :: IsString a => a
+plainVertexShaderCode = $(shaderFile "src/shader/plain_vertex.glsl")
+plainFragmentShaderCode :: IsString a => a
+plainFragmentShaderCode = $(shaderFile "src/shader/plain_fragment.glsl")
 mkPlainShader
   :: IO
     ( Program
@@ -54,3 +43,29 @@ mkPlainShader = do
   colorLoc <- get $ uniformLocation prg "color"
 
   return (prg, posLoc, colorLoc)
+
+imageVertexShaderCode :: IsString a => a
+imageVertexShaderCode = $(shaderFile "src/shader/image_vertex.glsl")
+imageFragmentShaderCode :: IsString a => a
+imageFragmentShaderCode = $(shaderFile "src/shader/image_fragment.glsl")
+mkImageShader
+  :: IO
+    ( Program
+    , AttribLocation -- pos
+    , AttribLocation -- uv
+    , UniformLocation -- tex
+    )
+mkImageShader = do
+  vshdr <- mkShader VertexShader imageVertexShaderCode
+  fshdr <- mkShader FragmentShader imageFragmentShaderCode
+
+  prg <- createProgram
+  attachShader prg vshdr
+  attachShader prg fshdr
+  linkProgram prg
+
+  posLoc <- get $ attribLocation prg "pos"
+  uvLoc <- get $ attribLocation prg "uv"
+  texLoc <- get $ uniformLocation prg "tex"
+
+  return (prg, posLoc, uvLoc, texLoc)
