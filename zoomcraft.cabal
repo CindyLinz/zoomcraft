@@ -22,7 +22,7 @@ executable zoomcraft
   -- other-extensions:    
   build-depends:       base >=4.7 && <4.8
                      , netwire ==5.0.*
-                     , OpenGL ==2.13.*
+                     , OpenGL ==2.12.*
                      , GLFW-b ==1.4.*
                      , transformers ==0.3.*
                      , containers ==0.5.*
